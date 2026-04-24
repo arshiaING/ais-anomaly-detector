@@ -1,9 +1,18 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from pprint import pprint
 
 import requests
 
 from backend.config import innstillinger
+
+norsk_tidssone = ZoneInfo("Europe/Oslo")
+
+
+def hent_norsk_tid_nå() -> datetime:
+    # Bruker norsk tid, så testperioden blir lettere å forstå for oss
+    return datetime.now(norsk_tidssone)
+
 
 
 def formater_tidspunkt(tidspunkt: datetime) -> str:
@@ -45,14 +54,17 @@ def hent_rå_ais_data(
    
     return svar.json()
 
-
 if __name__ == "__main__":
-   #test
-    slutt = datetime.now(timezone.utc)
+    
+    slutt = hent_norsk_tid_nå()
     start = slutt - timedelta(hours=1)
 
     # test rundt Oslofjorden
     test_bbox = "10.50,59.70,10.90,60.00"
+
+    print("Testperiode:")
+    print("start:", formater_tidspunkt(start))
+    print("slutt:", formater_tidspunkt(slutt))
 
     data = hent_rå_ais_data(
         bbox=test_bbox,
@@ -60,15 +72,19 @@ if __name__ == "__main__":
         slutt=slutt,
     )
 
-
     print("Svar fra AIS-API:")
     print("success:", data.get("success"))
     print("melding:", data.get("msg"))
 
+    if data.get("success") is False:
+        print("\nAPI-et svarte med feil, så vi stopper testen her.")
+        print("Dette betyr ikke nødvendigvis at koden vår er feil.")
+        raise SystemExit
+
     punkter = data.get("data", [])
     print("antall punkter:", len(punkter))
 
-   
+    
     if punkter:
         print("\nFørste AIS-punkt:")
         pprint(punkter[0])
