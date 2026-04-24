@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from pprint import pprint
 
 import requests
 
@@ -63,4 +64,13 @@ if __name__ == "__main__":
     print("Svar fra AIS-API:")
     print("success:", data.get("success"))
     print("melding:", data.get("msg"))
-    print("antall punkter:", len(data.get("data", [])))
+
+    punkter = data.get("data", [])
+    print("antall punkter:", len(punkter))
+
+   
+    if punkter:
+        print("\nFørste AIS-punkt:")
+        pprint(punkter[0])
+    else:
+        print("\nIngen punkter funnet i dette tidsrommet.")
