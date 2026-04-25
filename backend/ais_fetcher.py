@@ -1,20 +1,36 @@
+from pprint import pprint
+
 import requests
 
 from backend.config import innstillinger
 
 
 def sjekk_barentswatch_oppsett() -> None:
-    # ha client id og secret.
+    
+    mangler = []
+
     if not innstillinger.barentswatch_client_id:
-        raise ValueError("Mangler BARENTSWATCH_CLIENT_ID i .env")
+        mangler.append("BARENTSWATCH_CLIENT_ID")
 
     if not innstillinger.barentswatch_client_secret:
-        raise ValueError("Mangler BARENTSWATCH_CLIENT_SECRET i .env")
+        mangler.append("BARENTSWATCH_CLIENT_SECRET")
+
+    if innstillinger.barentswatch_client_id == "din_client_id":
+        mangler.append("BARENTSWATCH_CLIENT_ID har bare eksempelverdi")
+
+    if innstillinger.barentswatch_client_secret == "din_client_secret":
+        mangler.append("BARENTSWATCH_CLIENT_SECRET har bare eksempelverdi")
+
+    if mangler:
+        mangler_tekst = ", ".join(mangler)
+        raise ValueError(
+            f"BarentsWatch-oppsettet er ikke klart: {mangler_tekst}. "
+            "Fyll inn ekte verdier i .env før live AIS kan testes."
+        )
 
 
 def hent_barentswatch_token() -> str:
-    # Første steg mot live AIS er å hente et access token.
-    # Uten token får vi ikke lov til å kalle BarentsWatch sitt AIS-API.
+    
     sjekk_barentswatch_oppsett()
 
     foresporsel_data = {
@@ -36,9 +52,39 @@ def hent_barentswatch_token() -> str:
     return token_data["access_token"]
 
 
-if __name__ == "__main__":
-    # test 
+def hent_siste_ais_posisjoner() -> list[dict]:
+    
     token = hent_barentswatch_token()
 
-    print("BarentsWatch-token hentet.")
-    print("Lengde på token:", len(token))
+    url = f"{innstillinger.barentswatch_live_ais_url}/latest/combined"
+
+    
+    headers = {
+        "Authorization": f"Bearer {token}"
+    }
+
+    svar = requests.get(
+        url,
+        headers=headers,
+        timeout=innstillinger.foresporsel_timeout_sekunder,
+    )
+
+    svar.raise_for_status()
+
+    
+    return svar.json()
+
+
+if __name__ == "__main__":
+   
+    posisjoner = hent_siste_ais_posisjoner()
+
+    print("Hentet AIS-posisjoner fra BarentsWatch.")
+    print("antall posisjoner:", len(posisjoner))
+
+    
+    if posisjoner:
+        print("\nFørste AIS-posisjon:")
+        pprint(posisjoner[0])
+    else:
+        print("\nIngen posisjoner funnet.")
