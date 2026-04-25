@@ -70,8 +70,15 @@ class Innstillinger:
         "https://live.ais.barentswatch.no/v1",
     )
 
+
+
+
+
     barentswatch_client_id: str | None = os.getenv("BARENTSWATCH_CLIENT_ID")
     barentswatch_client_secret: str | None = os.getenv("BARENTSWATCH_CLIENT_SECRET")
 
     telegram_bot_token: str | None = os.getenv("TELEGRAM_BOT_TOKEN")
     telegram_chat_id: str | None = os.getenv("TELEGRAM_CHAT_ID")
+
+ # husk innstillinger i main ikke I
+innstillinger = Innstillinger()
