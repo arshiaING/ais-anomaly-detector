@@ -16,6 +16,7 @@ def hent_heltall_fra_miljo(navn: str, standardverdi: int) -> int:
         return standardverdi
 
 
+
 def hent_flyttall_fra_miljo(navn: str, standardverdi: float) -> float:
     verdi = os.getenv(navn)
     if verdi is None or verdi == "":
@@ -55,11 +56,22 @@ class Innstillinger:
     )
 
     ais_gap_minutter: int = hent_heltall_fra_miljo(
-        "AIS_GAP_MINUTTER", 30
+        "AIS_GAP_MINUTTER",
+        30
     )
+    # jeg trenger sanntid data for å få fech til å fungere riktig
+    barentswatch_token_url: str = os.getenv(
+        "BARENTSWATCH_TOKEN_URL",
+        "https://id.barentswatch.no/connect/token",
+    )
+
+    barentswatch_live_ais_url: str = os.getenv(
+        "BARENTSWATCH_LIVE_AIS_URL",
+        "https://live.ais.barentswatch.no/v1",
+    )
+
+    barentswatch_client_id: str | None = os.getenv("BARENTSWATCH_CLIENT_ID")
+    barentswatch_client_secret: str | None = os.getenv("BARENTSWATCH_CLIENT_SECRET")
 
     telegram_bot_token: str | None = os.getenv("TELEGRAM_BOT_TOKEN")
     telegram_chat_id: str | None = os.getenv("TELEGRAM_CHAT_ID")
-
-
-innstillinger = Innstillinger()
