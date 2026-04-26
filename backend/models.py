@@ -11,8 +11,8 @@ class SkipPosisjon(BaseModel):
     breddegrad: float
     lengdegrad: float
 
-    fart_over_grunn: float = 0.0
-    kurs_over_grunn: float = 0.0
+    fart_over_grunn: float | None = None
+    kurs_over_grunn: float | None = None
 
     tidspunkt: datetime  # når posisjonen ble registrert
     skipstype: int | None = None  # kan brukes senere til enkel sortering
