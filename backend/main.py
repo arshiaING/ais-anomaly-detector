@@ -1,9 +1,7 @@
-from datetime import datetime
-
 from fastapi import FastAPI
 
 from backend.config import innstillinger
-from backend.models import Anomali, LiveOppdatering, SkipPosisjon
+from backend.ais_fetcher import hent_siste_ais_posisjoner, lag_skip_posisjoner
 
 app = FastAPI(title=innstillinger.app_navn)
 
@@ -23,33 +21,18 @@ async def helse():
     }
 
 
-@app.get("/eksempel")
-async def eksempel():
-    skip = SkipPosisjon(
-        mmsi="123456789",
-        navn="Testskip",
-        breddegrad=59.91,
-        lengdegrad=10.75,
-        fart_over_grunn=12.5,
-        kurs_over_grunn=95.0,
-        tidspunkt=datetime.utcnow(),
-        skipstype=70,
+@app.get("/skip/live")
+def hent_live_skip():
+    
+    rå_posisjoner = hent_siste_ais_posisjoner()
+
+    skip_posisjoner, antall_hoppet_over = lag_skip_posisjoner(
+        rå_posisjoner,
+        maks_antall=50,
     )
 
-    anomali = Anomali(
-        mmsi="123456789",
-        skipsnavn="Testskip",
-        anomalitype="FART",
-        alvorlighetsgrad="HOY",
-        beskrivelse="Brå fartsendring oppdaget",
-        breddegrad=59.91,
-        lengdegrad=10.75,
-    )
-
-    svar = LiveOppdatering(
-        skip=[skip],
-        anomalier=[anomali],
-        oppdatert_tidspunkt=datetime.utcnow(),
-    )
-
-    return svar
+    return {
+        "antall": len(skip_posisjoner),
+        "antall_hoppet_over": antall_hoppet_over,
+        "skip": skip_posisjoner,
+    }
