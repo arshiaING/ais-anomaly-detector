@@ -1,11 +1,10 @@
 from pprint import pprint
 
 import requests
+from pydantic import ValidationError
 
 from backend.config import innstillinger
 from backend.models import SkipPosisjon
-
-
 
 
 def sjekk_barentswatch_oppsett() -> None:
@@ -100,6 +99,27 @@ def lag_skip_posisjon(rå_posisjon: dict) -> SkipPosisjon:
     return SkipPosisjon(**ryddet_posisjon)
 
 
+
+def lag_skip_posisjoner(
+    rå_posisjoner: list[dict],
+    maks_antall: int = 20,
+) -> list[SkipPosisjon]:
+    # Vi lager bare et begrenset antall først, så testen ikke printer altfor mye.
+    # fjerne maks_antall 
+    skip_posisjoner = []
+
+    for raa_posisjon in rå_posisjoner[:maks_antall]:
+        try:
+            skip_posisjon = lag_skip_posisjon(raa_posisjon)
+            skip_posisjoner.append(skip_posisjon)
+        except ValidationError:
+            # Noen AIS-meldinger kan mangle felt eller ha rare verdier
+            continue
+
+    return skip_posisjoner
+
+
+
 if __name__ == "__main__":
    
     posisjoner = hent_siste_ais_posisjoner()
@@ -116,8 +136,18 @@ if __name__ == "__main__":
 
         print("\nSamme posisjon ryddet til norske feltnavn:")
         pprint(ryddet_posisjon)
+
+        skip_posisjon = lag_skip_posisjon(posisjoner[0])
+
+        print("\nSamme posisjon som SkipPosisjon-modell:")
+        print(skip_posisjon)
+
+        skip_posisjoner = lag_skip_posisjoner(posisjoner)
+
+        print("\nAntall posisjoner som passet modellen:", len(skip_posisjoner))
+        print("Første 3 ryddede skip:")
+        pprint(skip_posisjoner[:3])
     else:
         print("\nIngen posisjoner funnet.")
-
 
     
