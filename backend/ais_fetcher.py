@@ -3,6 +3,9 @@ from pprint import pprint
 import requests
 
 from backend.config import innstillinger
+from backend.models import SkipPosisjon
+
+
 
 
 def sjekk_barentswatch_oppsett() -> None:
@@ -75,6 +78,14 @@ def hent_siste_ais_posisjoner() -> list[dict]:
     return svar.json()
 
 
+def lag_skip_posisjon(raa_posisjon: dict) -> SkipPosisjon:
+    # Først rydder vi BarentsWatch-dataene til våre norske feltnavn.
+    # Etterpå lar vi modellen sjekke at dataene faktisk passer.
+    ryddet_posisjon = rydd_ais_posisjon(rå_posisjon)
+
+    return SkipPosisjon(**ryddet_posisjon)
+
+
 if __name__ == "__main__":
    
     posisjoner = hent_siste_ais_posisjoner()
@@ -88,3 +99,6 @@ if __name__ == "__main__":
         pprint(posisjoner[0])
     else:
         print("\nIngen posisjoner funnet.")
+
+
+    
