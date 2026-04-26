@@ -78,9 +78,23 @@ def hent_siste_ais_posisjoner() -> list[dict]:
     return svar.json()
 
 
-def lag_skip_posisjon(raa_posisjon: dict) -> SkipPosisjon:
-    # Først rydder vi BarentsWatch-dataene til våre norske feltnavn.
-    # Etterpå lar vi modellen sjekke at dataene faktisk passer.
+def rydd_ais_posisjon(rå_posisjon: dict) -> dict:
+    
+    return {
+        "mmsi": str(rå_posisjon.get("mmsi", "")),
+        "navn": rå_posisjon.get("name"),
+        "breddegrad": rå_posisjon.get("latitude"),
+        "lengdegrad": rå_posisjon.get("longitude"),
+        "fart_over_grunn": rå_posisjon.get("speedOverGround"),
+        "kurs_over_grunn": rå_posisjon.get("courseOverGround"),
+        "tidspunkt": rå_posisjon.get("msgtime"),
+        "skipstype": rå_posisjon.get("shipType"),
+    }
+
+
+
+def lag_skip_posisjon(rå_posisjon: dict) -> SkipPosisjon:
+    
     ryddet_posisjon = rydd_ais_posisjon(rå_posisjon)
 
     return SkipPosisjon(**ryddet_posisjon)
@@ -95,8 +109,13 @@ if __name__ == "__main__":
 
     
     if posisjoner:
-        print("\nFørste AIS-posisjon:")
+        print("\nFørste rå AIS-posisjon:")
         pprint(posisjoner[0])
+
+        ryddet_posisjon = rydd_ais_posisjon(posisjoner[0])
+
+        print("\nSamme posisjon ryddet til norske feltnavn:")
+        pprint(ryddet_posisjon)
     else:
         print("\nIngen posisjoner funnet.")
 
