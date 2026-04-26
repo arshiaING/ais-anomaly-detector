@@ -6,7 +6,6 @@ from pydantic import ValidationError
 from backend.config import innstillinger
 from backend.models import SkipPosisjon
 
-
 def sjekk_barentswatch_oppsett() -> None:
     
     mangler = []
@@ -117,6 +116,33 @@ def lag_skip_posisjoner(
             continue
 
     return skip_posisjoner
+
+
+
+
+def lag_skip_posisjoner(
+    rå_posisjoner: list[dict],
+    maks_antall: int = 50,
+) -> tuple[list[SkipPosisjon], int]:
+    # Vi lager bare noen posisjoner først, så testen holder seg oversiktlig.
+    skip_posisjoner = []
+    antall_hoppet_over = 0
+
+    for raa_posisjon in rå_posisjoner[:maks_antall]:
+        try:
+            skip_posisjon = lag_skip_posisjon(raa_posisjon)
+            skip_posisjoner.append(skip_posisjon)
+        except ValidationError:
+            
+           
+            antall_hoppet_over += 1
+
+    return skip_posisjoner, antall_hoppet_over
+
+
+
+
+
 
 
 
