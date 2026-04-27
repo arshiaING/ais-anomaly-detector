@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from requests.exceptions import RequestException
 
 from backend.config import innstillinger
@@ -25,34 +25,36 @@ async def helse():
     }
 
 
-
 @app.get("/skip/live")
-def hent_live_skip():
-    # Denne routen er en enkel test på at backend kan hente live AIS-data.
-    # Token og BarentsWatch-kall skjer inne i fetcheren, ikke i nettleseren.
+def hent_live_skip(
+    maks_antall: int = Query(50, ge=1, le=500),
+):
+    # Denne routen henter live AIS-data og returnerer et begrenset antall skip.
+    # maks_antall kan styres i URL-en, for eksempel /skip/live?maks_antall=20.
     try:
-        raa_posisjoner = hent_siste_ais_posisjoner()
+        rå_posisjoner = hent_siste_ais_posisjoner()
 
         skip_posisjoner, antall_hoppet_over = lag_skip_posisjoner(
-            raa_posisjoner,
-            maks_antall=50,
+            rå_posisjoner,
+            maks_antall=maks_antall,
         )
 
         return {
             "antall": len(skip_posisjoner),
+            "maks_antall": maks_antall,
             "antall_hoppet_over": antall_hoppet_over,
             "skip": skip_posisjoner,
         }
 
     except ValueError as feil:
-        # hvis .env mangler
+        # Dette skjer typisk hvis .env mangler BarentsWatch-oppsett.
         raise HTTPException(
             status_code=400,
             detail=str(feil),
         )
 
     except RequestException:
-        #  nettverk eller token-feil.
+        # Dette skjer hvis kall mot BarentsWatch feiler.
         raise HTTPException(
             status_code=502,
             detail="Klarte ikke å hente AIS-data fra BarentsWatch akkurat nå.",
